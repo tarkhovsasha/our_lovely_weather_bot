@@ -1,6 +1,7 @@
 # @our_lovely_weather_bot
 import json
 import os
+from datetime import datetime
 import requests
 
 OPENWEATHERMAP_ORG_APP_ID = os.environ.get('OPENWEATHERMAP_ORG_APP_ID')
@@ -63,7 +64,7 @@ def check_weather(user_text):
     try:
         response = requests.get(url)
         name = response.json()["name"]
-        temp = str(int(round(response.json()["main"]["temp"] - 273.15)))
+        temp = str(int(round(response.json()["main"]["temp"])))
         pressure = str(int(response.json()["main"]["pressure"] * 0.75006375541921))
         humidity = str(response.json()["main"]["humidity"])
         wind = str(int(round(response.json()["wind"]["speed"])))
@@ -74,8 +75,7 @@ def check_weather(user_text):
         sunRise = datetime.fromtimestamp(response.json()["sys"]["sunrise"] + tz)
         sunSet = datetime.fromtimestamp(response.json()["sys"]["sunset"] + tz)
     except:
-        # bot.send_message(message.from_user.id, "Should be a city on earth", reply_markup=keyboard)
-        return res
+        return res,None
 
     res = '**' + name + '**\n'
     res += 'Температура: {}°С\n'.format(temp)
@@ -84,7 +84,26 @@ def check_weather(user_text):
     res += 'Ветер: {} {} м/с\n'.format(wind_dir, wind)
     res += 'Солнце всходит: {:%H:%M}\n'.format(sunRise)
     res += 'Солнце заходит: {:%H:%M}\n'.format(sunSet)
-    return res
+    return res,icon_url
+
+
+def send_weather_with_icon(chat_id, icon_url, caption=None):
+    """Send weather info with weather icon image"""
+    url = f"{TELEGRAM_API_URL}/sendPhoto"
+    
+    # Create caption with weather information if not provided
+    if not caption:
+        caption = f"Weather Info"
+    
+    payload = {
+        'chat_id': chat_id,
+        'photo': icon_url,
+        'caption': caption,
+        'parse_mode': 'HTML'  # Allows HTML formatting in caption
+    }
+    
+    response = requests.post(url, json=payload)
+    return response.json()
 
 
 def lambda_handler(event, context):
@@ -110,8 +129,8 @@ def lambda_handler(event, context):
             user_text = message["text"]
             # valid_cities = ['Istanbul', 'Moscow', 'Sofia', 'Thessaloniki']
             
-            response_text = check_weather(user_text)
-            send_message(chat_id, response_text)
+            response_text,icon_url = check_weather(user_text)
+            send_weather_with_icon(chat_id, icon_url, response_text)
 
         return {'statusCode': 200, 'body': json.dumps('Message processed successfully')}
         
