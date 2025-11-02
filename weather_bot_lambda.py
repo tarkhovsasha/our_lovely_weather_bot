@@ -9,7 +9,7 @@ TELEGRAM_API_URL = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}"
 def send_message(chat_id, text, reply_markup=None):
     """Send a message to Telegram chat"""
     url = f"{TELEGRAM_API_URL}/sendMessage"
-    payload = {'chat_id': chat_id, 'text': text}
+    payload = {'chat_id': chat_id, "text": text}
     if reply_markup:
         payload['reply_markup'] = reply_markup
     response = requests.post(url, json=payload)
@@ -18,12 +18,14 @@ def send_message(chat_id, text, reply_markup=None):
 def get_keyboard():
     """Create a custom keyboard with 4 city options"""
     keyboard = {
-        'keyboard': [
-            [{'text': 'МОСКВА'}, {'text': 'СОФИЯ'}],
-            [{'text': 'САЛОНИКИ'}, {'text': 'СТАМБУЛ'}]
+        "keyboard": [
+            [{"text": "САЛОНИКИ", "callback_data": "Thessaloniki"}, 
+             {"text": "СОФИЯ", "callback_data": "Sofia"}],
+            [{"text": "МОСКВА", "callback_data": "Moscow"}, 
+             {"text": "СТАМБУЛ", "callback_data": "Istanbul"}]
         ],
-        'resize_keyboard': True,
-        'one_time_keyboard': False
+        "resize_keyboard": True,
+        "one_time_keyboard": False
     }
     return keyboard
 
@@ -39,16 +41,16 @@ def lambda_handler(event, context):
         chat_id = message['chat']['id']
         
         # Handle /start command
-        if 'text' in message and message['text'] == '/start':
+        if "text" in message and message["text"] == '/start':
             welcome_text = "Welcome! Please select a city from the keyboard below:"
             keyboard = get_keyboard()
             send_message(chat_id, welcome_text, keyboard)
             return {'statusCode': 200, 'body': json.dumps('Start command processed')}
         
         # Handle text messages
-        if 'text' in message:
-            user_text = message['text']
-            valid_cities = ['London', 'Paris', 'Tokyo', 'New York']
+        if "text" in message:
+            user_text = message["text"]
+            valid_cities = ['Istanbul', 'Moscow', 'Sofia', 'Thessaloniki']
             
             if user_text in valid_cities:
                 response_text = f"You selected: {user_text}"
