@@ -10,6 +10,7 @@ TELEGRAM_API_URL = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}"
 
 url_pref = 'https://api.openweathermap.org/data/2.5/weather?q='
 url_postf = '&units=metric&appid='
+question_mark_url = 'https://uxwing.com/wp-content/themes/uxwing/download/communication-chat-call/question-mark-circle-outline-icon.png'
 
 
 def send_message(chat_id, text, reply_markup=None):
@@ -75,15 +76,15 @@ def check_weather(user_text):
         sunRise = datetime.fromtimestamp(response.json()["sys"]["sunrise"] + tz)
         sunSet = datetime.fromtimestamp(response.json()["sys"]["sunset"] + tz)
     except:
-        return res,None
+        return res,question_mark_url
 
-    res = '**' + name + '**\n'
-    res += 'Температура: {}°С\n'.format(temp)
-    res += 'Давление: {} мм\n'.format(pressure)
-    res += 'Влажность: {}%\n'.format(humidity)
-    res += 'Ветер: {} {} м/с\n'.format(wind_dir, wind)
-    res += 'Солнце всходит: {:%H:%M}\n'.format(sunRise)
-    res += 'Солнце заходит: {:%H:%M}\n'.format(sunSet)
+    res = '<b>' + name + '</b>\n'
+    res += 'Температура: <b>{}°С</b>\n'.format(temp)
+    res += 'Давление: <b>{} мм</b>\n'.format(pressure)
+    res += 'Влажность: <b>{}%</b>\n'.format(humidity)
+    res += 'Ветер: <b>{} {} м/с</b>\n'.format(wind_dir, wind)
+    res += 'Солнце всходит: <b>{:%H:%M}</b>\n'.format(sunRise)
+    res += 'Солнце заходит: <b>{:%H:%M}</b>\n'.format(sunSet)
     return res,icon_url
 
 
@@ -93,7 +94,7 @@ def send_weather_with_icon(chat_id, icon_url, caption=None):
     
     # Create caption with weather information if not provided
     if not caption:
-        caption = f"Weather Info"
+        caption = f"Weather info not available"
     
     payload = {
         'chat_id': chat_id,
