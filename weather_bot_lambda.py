@@ -3,13 +3,18 @@ import json
 import os
 from datetime import datetime
 import requests
+import re
 
+
+# Get tokens from environment
 OPENWEATHERMAP_ORG_APP_ID = os.environ.get('OPENWEATHERMAP_ORG_APP_ID')
 TELEGRAM_BOT_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN')
 TELEGRAM_API_URL = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}"
 
 url_pref = 'https://api.openweathermap.org/data/2.5/weather?q='
 url_postf = '&units=metric&appid='
+
+# Default picture for error response
 question_mark_url = 'https://uxwing.com/wp-content/themes/uxwing/download/communication-chat-call/question-mark-circle-outline-icon.png'
 
 
@@ -39,9 +44,40 @@ def get_keyboard():
 
 
 def windrose(deg):
+    """Convert numeric wind degrees to North-South notation"""
     dirlist = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW', 'N']
     num = int(deg + 22.5) // 45
     return dirlist[num]
+
+
+def validate_input(user_text):
+    """
+    Validates and normalizes user input for city names.
+    Supports Latin, accented European, and Cyrillic alphabets.
+    """
+    
+    # Step 1: Trim to first 20 characters
+    trimmed_text = user_text[:20]
+    
+    # Handle empty string
+    if not trimmed_text:
+        return "validation failed"
+    
+    # Step 2: Validate character classes
+    # - a-zA-Z: Basic Latin letters
+    # - À-ÖØ-öø-ÿ: Accented European letters
+    # - \u0400-\u04FF: Cyrillic main block (Russian, Bulgarian, Serbian, Macedonian)
+    # - \u0500-\u052F: Cyrillic Supplement (Ukrainian Ї, І, Є, etc.)
+    # - \u1C80-\u1C8F: Cyrillic Extended-C (old variants)
+    # - \s: Whitespace
+    # - \-: Dash
+    
+    pattern = r'^[a-zA-ZÀ-ÖØ-öø-ÿ\u0400-\u04FF\u0500-\u052F\u1C80-\u1C8F\s\-]+$'
+    
+    if re.match(pattern, trimmed_text):
+        return trimmed_text.lower()
+    else:
+        return "validation failed"
 
 
 def send_photo_from_url(chat_id, photo_url, caption=None):
@@ -59,6 +95,7 @@ def send_photo_from_url(chat_id, photo_url, caption=None):
 
 
 def check_weather(user_text):
+    """Get weather via OpenWeatherMap API"""
     url = url_pref + user_text.lower() + url_postf + OPENWEATHERMAP_ORG_APP_ID
     res = 'Should be a city on earth'
     
@@ -78,6 +115,7 @@ def check_weather(user_text):
     except:
         return res,question_mark_url
 
+    # Format human readable response message
     res = '<b>' + name + '</b>\n'
     res += 'Температура: <b>{}°С</b>\n'.format(temp)
     res += 'Давление: <b>{} мм</b>\n'.format(pressure)
@@ -129,8 +167,9 @@ def lambda_handler(event, context):
         if "text" in message:
             user_text = message["text"]
             # valid_cities = ['Istanbul', 'Moscow', 'Sofia', 'Thessaloniki']
+            trimmed_user_text = validate_input(user_text)
             
-            response_text,icon_url = check_weather(user_text)
+            response_text,icon_url = check_weather(trimmed_user_text)
             send_weather_with_icon(chat_id, icon_url, response_text)
 
         return {'statusCode': 200, 'body': json.dumps('Message processed successfully')}
