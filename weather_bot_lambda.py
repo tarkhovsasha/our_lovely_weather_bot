@@ -77,7 +77,7 @@ def validate_input(user_text):
     if re.match(pattern, trimmed_text):
         return trimmed_text.lower()
     else:
-        return "validation failed"
+        return "Validation failed error"
 
 
 def send_photo_from_url(chat_id, photo_url, caption=None):
@@ -100,6 +100,11 @@ def check_weather(user_text):
     res = 'Should be a city on earth'
     
     try:
+        # raise error in case validation failed
+        if user_text == "Validation failed error":
+            raise ValueError(user_text)
+
+        # otherwise Query OpenWeather API
         response = requests.get(url)
         name = response.json()["name"]
         temp = str(int(round(response.json()["main"]["temp"])))
@@ -166,7 +171,11 @@ def lambda_handler(event, context):
         # Handle text messages
         if "text" in message:
             user_text = message["text"]
+
+            # prototype strict validation 
             # valid_cities = ['Istanbul', 'Moscow', 'Sofia', 'Thessaloniki']
+
+            # loose validation by regular expression 
             trimmed_user_text = validate_input(user_text)
             
             response_text,icon_url = check_weather(trimmed_user_text)
