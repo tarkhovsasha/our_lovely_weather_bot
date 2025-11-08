@@ -55,13 +55,14 @@ def validate_input(user_text):
     Validates and normalizes user input for city names.
     Supports Latin, accented European, and Cyrillic alphabets.
     """
-    
+    validation_error = "Validation failed error"
+
     # Step 1: Trim to first 20 characters
     trimmed_text = user_text[:20]
     
     # Handle empty string
     if not trimmed_text:
-        return "validation failed"
+        return validation_error
     
     # Step 2: Validate character classes
     # - a-zA-Z: Basic Latin letters
@@ -77,7 +78,7 @@ def validate_input(user_text):
     if re.match(pattern, trimmed_text):
         return trimmed_text.lower()
     else:
-        return "Validation failed error"
+        return validation_error
 
 
 def send_photo_from_url(chat_id, photo_url, caption=None):
