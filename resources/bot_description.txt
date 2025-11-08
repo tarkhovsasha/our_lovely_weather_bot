@@ -1,0 +1,21 @@
+Bot provides current weather info in any place on Earth. 
+Just type the name of the city and check how it feels there.
+
+The bot provides current weather ☀🌧❄ info for any place on earth. 
+City can be selected via buttons or entered as text.
+
+The bot displays current weather for the selected city. 
+The response contains the following:
+
+- atmospheric condition icon (clear, cloudy, precipitation, etc.) 
+- temperature in Celsius
+- pressure mmHg
+- humidity percentage
+- wind speed m/s
+- wind direction (N, S, E, W, NW, NE, SW, SE)
+- sunrise time local
+- sunset time local
+
+Built With
+- python3
+- requests module
