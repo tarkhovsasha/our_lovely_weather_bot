@@ -1,20 +1,20 @@
 # our_lovely_weather_bot
 
 <!-- ABOUT THE PROJECT -->
-## О Проекте
+## About The Project
 
-Телеграм бот, который выдаёт текущую погоду для одного из городов по выбору пользователя. Выбор города можно осуществлять при помощи кнопки. В качестве примера предлагаются 4 города из трёх разных часовых поясов. Также есть возможность ввести название города вручную (при этом не гарантируется, что погоду для этого города удастся определить).
+A Telegram bot that provides current weather information for one of the user's chosen cities. City selection can be done using buttons. As an example, 4 cities from three different time zones are offered. There is also the ability to enter a city name manually (however, it is not guaranteed that weather data for this city can be retrieved).
 
-Бот выдает текущую погоду для выбранного города. Ответ бота содержит следующий набор данных:
+The bot displays the current weather for the selected city. The bot's response contains the following data:
 
-* Состояние атмосферы (ясно, облачно, осадки и.д.). Эта информация отображается в виде иконки. Для отправки изображения используем метод send_photo модуля telebot
-* Температура (в градусах Цельсия)
-* Давление (в мм ртутного столба)
-* Влажность (в процентах)
-* Скорость ветра (в м/c)
-* Направление ветра (С, Ю, В, З, СЗ, СВ, ЮЗ, ЮВ)
-* Время восхода солнца (часы и минуты)
-* Время захода солнца (часы и минуты)
+* Atmospheric condition (clear, cloudy, precipitation, etc.). This information is displayed as an icon. The send_photo method from the telebot module is used to send the image
+* Temperature (in degrees Celsius)
+* Pressure (in mmHg)
+* Humidity (in percentage)
+* Wind speed (in m/s)
+* Wind direction (N, S, E, W, NW, NE, SW, SE)
+* Sunrise time (hours and minutes)
+* Sunset time (hours and minutes)
 
 
 ### Built With
@@ -29,4 +29,3 @@
 
 * [https://openweathermap.org/](https://openweathermap.org/)
 
-  
