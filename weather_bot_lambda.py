@@ -98,7 +98,7 @@ def send_photo_from_url(chat_id, photo_url, caption=None):
 def check_weather(user_text):
     """Get weather via OpenWeatherMap API"""
     url = url_pref + user_text.lower() + url_postf + OPENWEATHERMAP_ORG_APP_ID
-    res = 'Should be a city on earth'
+    res = 'Should be a city on Earth'
     
     try:
         # raise error in case validation failed
