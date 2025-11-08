@@ -16,6 +16,7 @@ The bot displays the current weather for the selected city. The bot's response c
 * Sunrise time (hours and minutes)
 * Sunset time (hours and minutes)
 
+Link to the actual bot in Telegram: [t.me/our_lovely_weather_bot](https://t.me/our_lovely_weather_bot)
 
 ### Built With
 
