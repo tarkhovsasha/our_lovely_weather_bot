@@ -53,7 +53,7 @@ jobs:
         run: |
           aws lambda update-function-configuration \
             --function-name telegram-weather-bot \
-            --environment Variables="{TELEGRAM_BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }}}"
+            --environment Variables="{TELEGRAM_BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }}, OPENWEATHERMAP_ORG_APP_ID=${{ secrets.OPENWEATHERMAP_ORG_APP_ID }}}"
 
       # Wait again for environment update to complete
       - name: Wait for configuration update
