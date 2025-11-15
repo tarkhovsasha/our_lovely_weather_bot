@@ -40,9 +40,25 @@ jobs:
           aws lambda update-function-code \
             --function-name telegram-weather-bot \
             --zip-file fileb://weather_bot_lambda.zip
-      
+
+      # Wait step required as AWS does not allow concurrent function updates
+      - name: Wait for code update to complete
+        run: |
+          echo "⏳ Waiting for Lambda to finish updating..."
+          aws lambda wait function-updated \
+            --function-name telegram-weather-bot
+          echo "✓ Code update completed"    
+            
       - name: Update environment variables
         run: |
           aws lambda update-function-configuration \
             --function-name telegram-weather-bot \
             --environment Variables="{TELEGRAM_BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }}}"
+
+      # Wait again for environment update to complete
+      - name: Wait for configuration update
+        run: |
+          aws lambda wait function-updated \
+            --function-name telegram-weather-bot
+          echo "✓ Environment update completed"    
+            
