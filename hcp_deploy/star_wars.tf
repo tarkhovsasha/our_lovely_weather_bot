@@ -10,7 +10,7 @@ terraform {
 
 # Convert workspace names input to set
 locals {
-  cli_workspaces = toset(var.cli_workspaces_name_list)
+  vcs_workspaces = toset(var.vcs_workspaces_name_list)
 }
 
 # Create a project and assign the workspaces to the same project
@@ -26,32 +26,32 @@ resource "tfe_project" "galaxy" {
 }
  */
 
-# Create a workspace with VCS-driven workflow
-resource "tfe_workspace" "vcs_ws" {
+# Create a workspace with CLI-driven workflow
+resource "tfe_workspace" "cli_ws" {
 
-  name           = "vcs-${var.vcs_workspace_name}"
+  name           = "cli-${var.cli_workspace_name}"
+  organization   = var.organization_name
+  project_id     = tfe_project.galaxy.id
+  queue_all_runs = false
+  auto_apply     = true
+}
+
+# Create 3 workspaces with VCS-driven workflow
+resource "tfe_workspace" "vcs_ws" {
+  for_each = local.vcs_workspaces
+
+  name           = "vcs-${each.key}"
   organization   = var.organization_name
   project_id     = tfe_project.galaxy.id
   queue_all_runs = false
   auto_apply     = true
 
-  vcs_repo {
+    vcs_repo {
     identifier = "${var.github_user}/${var.github_repo}"
     #oauth_token_id = data.tfe_oauth_client.client.oauth_token_id
     github_app_installation_id = var.github_app_installation_id
-    branch                     = var.vcs_repo_branch
+    branch                     = local.vcs_repo_branch
   }
-}
-
-# Create 3 workspaces with CLI-driven workflow
-resource "tfe_workspace" "cli_ws" {
-  for_each = local.cli_workspaces
-
-  name           = "cli-${each.key}"
-  organization   = var.organization_name
-  project_id     = tfe_project.galaxy.id
-  queue_all_runs = false
-  auto_apply     = true
 }
 
 
@@ -107,7 +107,9 @@ resource "tfe_workspace_variable_set" "cli_ws_varset" {
 
 # Initiate the first run of the workspace
 resource "tfe_workspace_run" "initial_vcs_run" {
-  workspace_id = tfe_workspace.vcs_ws.id
+  for_each = tfe_workspace.vcs_ws
+
+  workspace_id = each.value.id
 
   apply {
     manual_confirm = false

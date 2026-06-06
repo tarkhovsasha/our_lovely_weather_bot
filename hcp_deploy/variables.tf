@@ -13,10 +13,21 @@ variable "github_app_installation_id" {
   sensitive = true
 }
 
-variable "vcs_repo_branch" {
+variable "vcs_production_repo_branch" {
   type    = string
   default = "main"
 }
+
+variable "vcs_staging_repo_branch" {
+  type    = string
+  default = "stage"
+}
+
+variable "vcs_development_repo_branch" {
+  type    = string
+  default = "development"
+}
+
 
 variable "organization_name" {
   type        = string
@@ -35,27 +46,27 @@ variable "project_name" {
   }
 }
 
-variable "vcs_workspace_name" {
+variable "cli_workspace_name" {
   type        = string
   default     = "the-force-ws"
-  description = "Name of the VCS workspace."
+  description = "Name of the CLI workspace."
 
   validation {
-    condition     = length(var.vcs_workspace_name) > 4
+    condition     = length(var.cli_workspace_name) > 4
     error_message = "The workspace name value must be longer than 4 characters."
   }
 }
 
-variable "cli_workspaces_name_list" {
+variable "vcs_workspaces_name_list" {
   type        = list(string)
-  default     = ["team-empire-ws", "team-republic-ws", "team-jedi-ws"]
-  description = "List of CLI workspace names."
+  default     = ["development-ws", "staging-ws", "production-ws"]
+  description = "List of VCS workspace names."
 
   validation {
     condition = alltrue([
-      for str in var.cli_workspaces_name_list : str != ""
-    ]) && length(var.cli_workspaces_name_list) == length(distinct([
-      for str in var.cli_workspaces_name_list : lower(str)
+      for str in var.vcs_workspaces_name_list : str != ""
+    ]) && length(var.vcs_workspaces_name_list) == length(distinct([
+      for str in var.vcs_workspaces_name_list : lower(str)
     ]))
     error_message = "All names must be non-empty and unique."
   }
@@ -85,3 +96,11 @@ variable "aws_secret_access_key" {
   type        = string
   description = "Value for the full_path attribute of the gitlab_group resource to add the new app repo to"
 } */
+
+locals {
+  vcs_repo_branch = lookup({
+    "production-ws"  = var.vcs_production_repo_branch
+    "development-ws" = var.vcs_development_repo_branch
+    "staging-ws"     = var.vcs_staging_repo_branch
+  }, var.cli_workspace_name, var.vcs_development_repo_branch)
+}
