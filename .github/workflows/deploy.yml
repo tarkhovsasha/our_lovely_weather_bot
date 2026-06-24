@@ -25,7 +25,7 @@ jobs:
         run: |
           mkdir -p build
           pip install -r requirements.txt -t build/
-          cp weather_bot_lambda.py build/
+          cp weather_bot_lambda.py build/lambda_function.py
           cd build && zip -r ../weather_bot_lambda.zip . && cd ..
       
       # Use OIDC to get temporary credentials
