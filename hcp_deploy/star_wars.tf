@@ -46,7 +46,7 @@ resource "tfe_workspace" "vcs_ws" {
   queue_all_runs = false
   auto_apply     = true
 
-    vcs_repo {
+  vcs_repo {
     identifier = "${var.github_user}/${var.github_repo}"
     #oauth_token_id = data.tfe_oauth_client.client.oauth_token_id
     github_app_installation_id = var.github_app_installation_id
@@ -90,16 +90,68 @@ resource "tfe_variable" "aws_secret_access_key" {
   variable_set_id = tfe_variable_set.default_varset.id
 }
 
-# Uncomment to apply the default variable set to the VCS workspace
-/* resource "tfe_workspace_variable_set" "vcs_ws_varset" {
-  workspace_id    = tfe_workspace.vcs_ws.id
-  variable_set_id = tfe_variable_set.default_varset.id
-}
- */
 
-# Make sure the variable set has been applied to all CLI workspaces
+resource "tfe_variable_set" "cli_varset" {
+  name         = "CLI workspace variables (test)"
+  description  = "Special varset for CLI workspace."
+  organization = var.organization_name
+}
+
+
+# Telegram bot token for the CLI workspace
+resource "tfe_variable" "telegram_bot_token" {
+  key             = "TF_VAR_TELEGRAM_BOT_TOKEN"
+  sensitive       = true
+  value           = var.TELEGRAM_BOT_TOKEN_DEV
+  category        = "env"
+  description     = "Telegram bot token"
+  variable_set_id = tfe_variable_set.cli_varset.id
+}
+
+
+# API client ID for OpenWeatherMap API
+resource "tfe_variable" "openweathermap_client_id" {
+  key             = "TF_VAR_OPENWEATHERMAP_ORG_APP_ID"
+  sensitive       = true
+  value           = var.OPENWEATHERMAP_ORG_APP_ID
+  category        = "env"
+  description     = "OpenWeatherMap API ID"
+  variable_set_id = tfe_variable_set.cli_varset.id
+}
+
+
+# TODO: Create execution role dynamically.
+# static resource for Lambda execution role ARN
+resource "tfe_variable" "lambda_role_arn" {
+  key             = "lambda_role_arn"
+  value           = var.lambda_role_arn
+  category        = "terraform"
+  description     = "ARN of the Lambda execution role"
+  variable_set_id = tfe_variable_set.cli_varset.id
+}
+
+/*
+# TODO: Create layer dynamically.
+# static resource for Lambda layer ARN
+resource "tfe_variable" "lambda_layer_arn" {
+  key             = "lambda_layer_arn"
+  value           = var.lambda_layer_arn
+  category        = "terraform"
+  description     = "ARN of the Lambda layer"
+  variable_set_id = tfe_variable_set.cli_varset.id
+}
+*/
+
+# Uncomment to apply the variable set to the CLI workspace
 resource "tfe_workspace_variable_set" "cli_ws_varset" {
-  for_each = tfe_workspace.cli_ws
+  workspace_id    = tfe_workspace.cli_ws.id
+  variable_set_id = tfe_variable_set.cli_varset.id
+}
+
+
+# Make sure the variable set has been applied to all VCS workspaces
+resource "tfe_workspace_variable_set" "vcs_ws_varset" {
+  for_each = tfe_workspace.vcs_ws
 
   workspace_id    = each.value.id
   variable_set_id = tfe_variable_set.default_varset.id

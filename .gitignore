@@ -201,8 +201,8 @@ hcp_deploy/terraform.tfvars.json
 **/*_override.tf.json
 
 # Ignore transient lock info files created by terraform apply
-hcp_deploy/.terraform.tfstate.lock.info
-hcp_deploy/.terraform.lock.hcl
+**/.terraform.tfstate.lock.info
+**/.terraform.lock.hcl
 
 # Include override files you do wish to add to version control using negated pattern
 # !example_override.tf
@@ -213,3 +213,6 @@ hcp_deploy/.terraform.lock.hcl
 # Ignore CLI configuration files
 hcp_deploy/.terraformrc
 hcp_deploy/terraform.rc
+
+# Ignore dev docs
+github-actions-deploy.md

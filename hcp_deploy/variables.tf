@@ -65,8 +65,8 @@ variable "vcs_workspaces_name_list" {
   validation {
     condition = alltrue([
       for str in var.vcs_workspaces_name_list : str != ""
-    ]) && length(var.vcs_workspaces_name_list) == length(distinct([
-      for str in var.vcs_workspaces_name_list : lower(str)
+      ]) && length(var.vcs_workspaces_name_list) == length(distinct([
+        for str in var.vcs_workspaces_name_list : lower(str)
     ]))
     error_message = "All names must be non-empty and unique."
   }
@@ -74,7 +74,7 @@ variable "vcs_workspaces_name_list" {
 
 variable "default_aws_region" {
   type        = string
-  default     = "eu-central-1"
+  default     = "us-west-2"
   description = "Configure default aws region to be used"
 }
 
@@ -92,10 +92,33 @@ variable "aws_secret_access_key" {
   description = "AWS credential key secret"
 }
 
-/* variable "gitlab_group_path" {
+variable "TELEGRAM_BOT_TOKEN_DEV" {
   type        = string
-  description = "Value for the full_path attribute of the gitlab_group resource to add the new app repo to"
-} */
+  sensitive   = true
+  default     = "TEST_DUMMY_TELEGRAM_BOT_TOKEN"
+  description = "Telegram bot token for the CLI workspace"
+}
+
+variable "OPENWEATHERMAP_ORG_APP_ID" {
+  type        = string
+  sensitive   = true
+  default     = "TEST_DUMMY_OPENWEATHERMAP_ORG_APP_ID"
+  description = "OpenWeatherMap API ID"
+}
+
+variable "lambda_role_arn" {
+  type        = string
+  sensitive   = true
+  default     = "TEST_DUMMY_LAMBDA_ROLE_ARN"
+  description = "ARN of the Lambda execution role"
+}
+
+/*
+variable "lambda_layer_arn" {
+  description = "ARN of an existing, versioned Lambda layer"
+  type        = string
+}
+*/
 
 locals {
   vcs_repo_branch = lookup({

@@ -1,7 +1,12 @@
-output "vcs_workspace_name" {
-  value = tfe_workspace.vcs_ws.name
+/*
+output "cli_workspaces_list" {
+  value = [for ws in tfe_workspace.cli_ws : ws.name]
 }
-
+*/
+output "vcs_workspace_list" {
+  value = [for ws in tfe_workspace.vcs_ws : ws.name]
+}
+/*
 output "vcs_workspace_repo" {
   value = join(", ", tfe_workspace.vcs_ws.vcs_repo[*].identifier)
 }
@@ -9,10 +14,7 @@ output "vcs_workspace_repo" {
 output "vcs_workspace_branch" {
   value = join(", ", tfe_workspace.vcs_ws.vcs_repo[*].branch)
 }
-
-output "cli_workspaces_list" {
-  value = [for ws in tfe_workspace.cli_ws : ws.name]
-}
+*/
 
 /*
 output "aws_access_key_id" {
