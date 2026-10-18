@@ -8,11 +8,6 @@ terraform {
   }
 }
 
-# Convert workspace names input to set
-locals {
-  vcs_workspaces = toset(var.vcs_workspaces_name_list)
-}
-
 # Create a project and assign the workspaces to the same project
 resource "tfe_project" "galaxy" {
   organization = var.organization_name
@@ -40,17 +35,18 @@ resource "tfe_workspace" "cli_ws" {
 resource "tfe_workspace" "vcs_ws" {
   for_each = local.vcs_workspaces
 
-  name           = "vcs-${each.key}"
-  organization   = var.organization_name
-  project_id     = tfe_project.galaxy.id
-  queue_all_runs = false
-  auto_apply     = true
+  name              = "vcs-${each.key}"
+  organization      = var.organization_name
+  project_id        = tfe_project.galaxy.id
+  queue_all_runs    = false
+  auto_apply        = true
+  working_directory = "infrastructure/vcs"
 
   vcs_repo {
     identifier = "${var.github_user}/${var.github_repo}"
     #oauth_token_id = data.tfe_oauth_client.client.oauth_token_id
     github_app_installation_id = var.github_app_installation_id
-    branch                     = local.vcs_repo_branch
+    branch                     = lookup(local.vcs_repo_branch, each.key, var.vcs_development_repo_branch)
   }
 }
 
@@ -90,6 +86,81 @@ resource "tfe_variable" "aws_secret_access_key" {
   variable_set_id = tfe_variable_set.default_varset.id
 }
 
+# Create 3 variable sets for the VCS-driven workspace
+resource "tfe_variable_set" "vcs_varset" {
+  for_each = local.vcs_workspaces
+
+  name         = "VCS workspace variables (${each.key})"
+  description  = "Environment specific variable set for VCS workspace."
+  organization = var.organization_name
+}
+
+resource "tfe_variable" "vcs_environment" {
+  for_each = tfe_variable_set.vcs_varset
+
+  key             = "environment"
+  value           = var.vcs_workspaces_env_map[each.key]
+  category        = "terraform"
+  variable_set_id = each.value.id
+}
+
+resource "tfe_variable" "vcs_openweathermap_client_id" {
+  for_each = tfe_variable_set.vcs_varset
+
+  key             = "TF_VAR_OPENWEATHERMAP_ORG_APP_ID"
+  value           = var.OPENWEATHERMAP_ORG_APP_ID
+  category        = "env"
+  sensitive       = true
+  variable_set_id = each.value.id
+}
+
+resource "tfe_variable" "vcs_telegram_bot_token" {
+  for_each = tfe_variable_set.vcs_varset
+
+  key             = "TF_VAR_TELEGRAM_BOT_TOKEN"
+  value           = local.telegram_bot_tokens[each.key]
+  category        = "env"
+  sensitive       = true
+  variable_set_id = each.value.id
+}
+
+resource "tfe_variable" "vcs_lambda_role_arn" {
+  for_each = tfe_variable_set.vcs_varset
+
+  key             = "lambda_role_arn"
+  value           = var.lambda_role_arn
+  category        = "terraform"
+  description     = "ARN of the Lambda execution role"
+  variable_set_id = each.value.id
+}
+
+resource "tfe_variable" "vcs_aws_region" {
+  for_each = tfe_variable_set.vcs_varset
+
+  key             = "AWS_REGION"
+  value           = var.default_aws_region
+  category        = "terraform"
+  variable_set_id = each.value.id
+}
+
+resource "tfe_variable" "vcs_aws_access_key_id" {
+  for_each = tfe_variable_set.vcs_varset
+
+  key             = "AWS_ACCESS_KEY_ID"
+  value           = var.aws_access_key_id
+  category        = "env"
+  variable_set_id = each.value.id
+}
+
+resource "tfe_variable" "vcs_aws_secret_access_key" {
+  for_each = tfe_variable_set.vcs_varset
+
+  key             = "AWS_SECRET_ACCESS_KEY"
+  value           = var.aws_secret_access_key
+  category        = "env"
+  sensitive       = true
+  variable_set_id = each.value.id
+}
 
 resource "tfe_variable_set" "cli_varset" {
   name         = "CLI workspace variables (test)"
@@ -154,7 +225,7 @@ resource "tfe_workspace_variable_set" "vcs_ws_varset" {
   for_each = tfe_workspace.vcs_ws
 
   workspace_id    = each.value.id
-  variable_set_id = tfe_variable_set.default_varset.id
+  variable_set_id = tfe_variable_set.vcs_varset[each.key].id
 }
 
 # Initiate the first run of the workspace
@@ -167,7 +238,7 @@ resource "tfe_workspace_run" "initial_vcs_run" {
     manual_confirm = false
     wait_for_run   = false
   }
-  # depends_on = tfe_workspace_variable_set.vcs_ws_varset
+  depends_on = [tfe_workspace_variable_set.vcs_ws_varset]
 }
 
 

@@ -48,7 +48,7 @@ variable "project_name" {
 
 variable "cli_workspace_name" {
   type        = string
-  default     = "the-force-ws"
+  default     = "sandbox-ws"
   description = "Name of the CLI workspace."
 
   validation {
@@ -71,6 +71,26 @@ variable "vcs_workspaces_name_list" {
     error_message = "All names must be non-empty and unique."
   }
 }
+
+variable "vcs_workspaces_env_map" {
+  type = map(string)
+  default = {
+    "development-ws" = "DEV"
+    "staging-ws"     = "STAGE"
+    "production-ws"  = "PROD"
+  }
+  description = "Map of VCS workspace names to their environment."
+
+  validation {
+    condition = alltrue([
+      for environment in values(var.vcs_workspaces_env_map) : contains(["DEV", "STAGE", "PROD"], environment)
+      ]) && length(var.vcs_workspaces_env_map) == length(distinct([
+        for environment in values(var.vcs_workspaces_env_map) : lower(environment)
+    ]))
+    error_message = "Environment suffixes must be unique and one of DEV, STAGE, or PROD."
+  }
+}
+
 
 variable "default_aws_region" {
   type        = string
@@ -96,7 +116,21 @@ variable "TELEGRAM_BOT_TOKEN_DEV" {
   type        = string
   sensitive   = true
   default     = "TEST_DUMMY_TELEGRAM_BOT_TOKEN"
-  description = "Telegram bot token for the CLI workspace"
+  description = "Telegram bot token for the dev workspace"
+}
+
+variable "TELEGRAM_BOT_TOKEN_STAGE" {
+  type        = string
+  sensitive   = true
+  default     = "TEST_DUMMY_TELEGRAM_BOT_TOKEN"
+  description = "Telegram bot token for the staging workspace"
+}
+
+variable "TELEGRAM_BOT_TOKEN_PROD" {
+  type        = string
+  sensitive   = true
+  default     = "TEST_DUMMY_TELEGRAM_BOT_TOKEN"
+  description = "Telegram bot token for the production workspace"
 }
 
 variable "OPENWEATHERMAP_ORG_APP_ID" {
@@ -119,11 +153,3 @@ variable "lambda_layer_arn" {
   type        = string
 }
 */
-
-locals {
-  vcs_repo_branch = lookup({
-    "production-ws"  = var.vcs_production_repo_branch
-    "development-ws" = var.vcs_development_repo_branch
-    "staging-ws"     = var.vcs_staging_repo_branch
-  }, var.cli_workspace_name, var.vcs_development_repo_branch)
-}

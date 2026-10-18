@@ -13,7 +13,7 @@ terraform {
   cloud {
     organization = "telegram_weather_bot"
     workspaces {
-      name = "cli-the-force-ws"
+      name = "cli-sandbox-ws"
     }
   }
 }
