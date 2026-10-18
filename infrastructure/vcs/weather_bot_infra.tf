@@ -1,7 +1,7 @@
 locals {
   weather_bot_source_hash = base64sha256(join(":", [
-    filesha256("${path.module}../../weather_bot_lambda.py"),
-    filesha256("${path.module}../../requirements.txt"),
+    filesha256("${path.module}/../../weather_bot_lambda.py"),
+    filesha256("${path.module}/../../requirements.txt"),
   ]))
 }
 
@@ -38,8 +38,8 @@ resource "terraform_data" "weather_bot_package" {
     environment = {
       PACKAGE_DIR       = "${path.module}/build/weather_bot"
       ZIP_PATH          = "${path.module}/weather_bot_lambda.zip"
-      REQUIREMENTS_FILE = "${path.module}../../requirements.txt"
-      HANDLER_FILE      = "${path.module}../../weather_bot_lambda.py"
+      REQUIREMENTS_FILE = "${path.module}/../../requirements.txt"
+      HANDLER_FILE      = "${path.module}/../../weather_bot_lambda.py"
     }
   }
 }
