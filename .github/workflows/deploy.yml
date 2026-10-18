@@ -1,0 +1,62 @@
+name: Deploy Weather Bot to AWS Lambda
+
+on:
+  workflow_dispatch:
+
+# Required for OIDC
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+      
+      - name: Build Lambda package
+        run: |
+          mkdir -p build
+          pip install -r requirements.txt -t build/
+          cp weather_bot_lambda.py build/
+          cd build && zip -r ../weather_bot_lambda.zip . && cd ..
+      
+      # Use OIDC to get temporary credentials
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          aws-region: us-west-2
+      
+      - name: Deploy Lambda
+        run: |
+          aws lambda update-function-code \
+            --function-name telegram-weather-bot \
+            --zip-file fileb://weather_bot_lambda.zip
+
+      # Wait step required as AWS does not allow concurrent function updates
+      - name: Wait for code update to complete
+        run: |
+          echo "⏳ Waiting for Lambda to finish updating..."
+          aws lambda wait function-updated \
+            --function-name telegram-weather-bot
+          echo "✓ Code update completed"    
+            
+      - name: Update environment variables
+        run: |
+          aws lambda update-function-configuration \
+            --function-name telegram-weather-bot \
+            --environment Variables="{TELEGRAM_BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }}, OPENWEATHERMAP_ORG_APP_ID=${{ secrets.OPENWEATHERMAP_ORG_APP_ID }}}"
+
+      # Wait again for environment update to complete
+      - name: Wait for configuration update
+        run: |
+          aws lambda wait function-updated \
+            --function-name telegram-weather-bot
+          echo "✓ Environment update completed"    
+            
