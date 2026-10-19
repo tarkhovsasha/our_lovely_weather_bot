@@ -35,12 +35,13 @@ resource "tfe_workspace" "cli_ws" {
 resource "tfe_workspace" "vcs_ws" {
   for_each = local.vcs_workspaces
 
-  name              = "vcs-${each.key}"
-  organization      = var.organization_name
-  project_id        = tfe_project.galaxy.id
-  queue_all_runs    = false
-  auto_apply        = true
-  working_directory = "infrastructure/vcs"
+  name               = "vcs-${each.key}"
+  organization       = var.organization_name
+  project_id         = tfe_project.galaxy.id
+  queue_all_runs     = false
+  auto_apply         = true
+  allow_destroy_plan = true
+  working_directory  = "infrastructure/vcs"
 
   vcs_repo {
     identifier = "${var.github_user}/${var.github_repo}"
@@ -49,7 +50,6 @@ resource "tfe_workspace" "vcs_ws" {
     branch                     = lookup(local.vcs_repo_branch, each.key, var.vcs_development_repo_branch)
   }
 }
-
 
 # Create a variable set containing: a terraform variable and an environment variable
 resource "tfe_variable_set" "default_varset" {
@@ -241,6 +241,28 @@ resource "tfe_workspace_run" "initial_vcs_run" {
   depends_on = [tfe_workspace_variable_set.vcs_ws_varset]
 }
 
+# Destroy run to clean up AWS resources in case of workspace deletion
+resource "tfe_workspace_run" "vcs_destroy" {
+  for_each = tfe_workspace.vcs_ws
+
+  workspace_id = each.value.id
+
+  # Keep configuration inputs available until the destroy run finishes.
+  depends_on = [
+    tfe_variable.vcs_openweathermap_client_id,
+    tfe_variable.vcs_telegram_bot_token,
+    tfe_variable.vcs_lambda_role_arn,
+    tfe_variable.vcs_aws_region,
+    tfe_variable.vcs_aws_access_key_id,
+    tfe_variable.vcs_aws_secret_access_key,
+    tfe_workspace_variable_set.vcs_ws_varset
+  ]
+
+  destroy {
+    manual_confirm = false
+    wait_for_run   = true
+  }
+}
 
 /* # Initialize and apply the HCP Terraform Simple Landing Zone module
 module "tfc-simple-lz" {
