@@ -127,8 +127,8 @@ def check_weather(user_text):
     res += 'Давление: <b>{} мм</b>\n'.format(pressure)
     res += 'Влажность: <b>{}%</b>\n'.format(humidity)
     res += 'Ветер: <b>{} {} м/с</b>\n'.format(wind_dir, wind)
-    res += 'Солнце всходит: <b>{:%H:%M}</b>\n'.format(sunRise)
-    res += 'Солнце заходит: <b>{:%H:%M}</b>\n'.format(sunSet)
+    #res += 'Солнце всходит: <b>{:%H:%M}</b>\n'.format(sunRise)
+    #res += 'Солнце заходит: <b>{:%H:%M}</b>\n'.format(sunSet)
     return res,icon_url
 
 
