@@ -43,6 +43,9 @@ resource "tfe_workspace" "vcs_ws" {
   allow_destroy_plan = true
   working_directory  = "infrastructure/vcs"
 
+  # Trigger runs on every VCS push
+  file_triggers_enabled = false
+
   vcs_repo {
     identifier = "${var.github_user}/${var.github_repo}"
     #oauth_token_id = data.tfe_oauth_client.client.oauth_token_id
